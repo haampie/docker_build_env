@@ -23,10 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg && \
 RUN export DEBIAN_FRONTEND=noninteractive &&        \
     apt-get update && apt-get install               \
                     --no-install-recommends -y      \
+                    wget zip curl ca-certificates   \
                     clang                           \
                     clang-format                    \
                     clang-tidy                      \
-                    lcov                            \
                     llvm-9                          \
                     lld                             \
                     libhwloc-dev                    \
@@ -69,11 +69,13 @@ RUN export DEBIAN_FRONTEND=noninteractive &&        \
     cd /hpx/tools/cpp-dependencies && cmake . && make -j install && \
     rm -rf /var/lib/apt/lists/*
 
-ARG LCOV_WRAPPER=/usr/local/bin/llvm-cov-wrapper
+RUN wget -q https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 && \
+    tar -jxf grcov-linux-x86_64.tar.bz2 && \
+    mv grcov /usr/bin && \
+    rm grcov-linux-x86_64.tar.bz2
 
-RUN echo '#!/bin/bash' >> ${LCOV_WRAPPER} && \
-    echo 'llvm-cov-9 gcov "$@"' >> ${LCOV_WRAPPER} && \
-    chmod +x ${LCOV_WRAPPER}
+RUN apt-get update && apt-get install -y --no-install-recommends ccache && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV CC clang
 ENV CXX clang++
